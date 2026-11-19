@@ -1,0 +1,63 @@
+--- a/node_modules/@deepseek-ai/dsh-compaction-basic/lib/index.js
++++ b/node_modules/@deepseek-ai/dsh-compaction-basic/lib/index.js
+@@ -5,6 +5,7 @@
+ import { randomUUID } from "node:crypto";
+ import { isDeepStrictEqual } from "node:util";
+ import { SessionSeq } from "@deepseek-ai/dsh-session";
++const COMPACTION_PRESENTATION_API = 1;
+ //#region lib/types/config.js
+ /**
+ * Load-time validation and routed-model policy resolution for compaction-basic.
+@@ -306,7 +307,7 @@
+ 		role: "user",
+ 		content: [{
+ 			type: "text",
+-			text: COMPACTION_INSTRUCTION
++			text: compactionPresentation(ctx, agent, "instruction", COMPACTION_INSTRUCTION)
+ 		}]
+ 	})];
+ 	const options = {
+@@ -341,11 +342,18 @@
+ * @param summary - safe text-only model output.
+ * @returns content for the synthesized replacement user message.
+ */
+-function frameSummary(summary) {
++// Optional synchronous presentation hook. No listener preserves native text exactly.
++function compactionPresentation(ctx, agent, purpose, fallback) {
++  const text = ctx.bail("compaction/prompt", {agent, purpose, defaultText: fallback});
++  if (text === undefined) return fallback;
++  if (typeof text !== "string") throw new TypeError("compaction/prompt must return a string or undefined");
++  return text;
++}
++function frameSummary(summary, preamble = CHECKPOINT_PREAMBLE) {
+ 	return [
+ 		{
+ 			type: "text",
+-			text: `${CHECKPOINT_PREAMBLE}\n\n${SUMMARY_OPEN_TAG}`
++			text: `${preamble}\n\n${SUMMARY_OPEN_TAG}`
+ 		},
+ 		...summary,
+ 		{
+@@ -594,7 +602,7 @@
+ 		}
+ 	}
+ 	const checkpointMessage = createUserMessage({
+-		content: frameSummary(summaryResult.summary),
++		content: frameSummary(summaryResult.summary, dependencies.checkpointPreamble?.(agent)),
+ 		source: compactCheckpointSource(compactionId, sourceCommandId)
+ 	});
+ 	const framedSummaryTokenCount = dependencies.meter.estimateMessage(checkpointMessage);
+@@ -1031,6 +1039,7 @@
+ 		return {
+ 			meter: this.ctx.tokenMeter,
+ 			summarize: (input, owner, abort) => this.summarize(input, owner, abort),
++			checkpointPreamble: (owner) => compactionPresentation(this.ctx, owner, "checkpoint", CHECKPOINT_PREAMBLE),
+ 			recover: (error, agent, sourceEventSeqs, signal) => this.ctx.waterfall("compaction/summary-error", {
+ 				session: agent.session,
+ 				sourceEventSeqs,
+@@ -1041,4 +1050,4 @@
+ 	}
+ };
+ //#endregion
+-export { BasicCompactionEngine, BasicCompactionEngine as default };
++export { BasicCompactionEngine, BasicCompactionEngine as default, COMPACTION_PRESENTATION_API };

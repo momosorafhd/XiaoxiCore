@@ -1,0 +1,31 @@
+--- a/node_modules/@deepseek-ai/dsh-working-directory/lib/index.js
++++ b/node_modules/@deepseek-ai/dsh-working-directory/lib/index.js
+@@ -1,3 +1,5 @@
++import { scopeTarget } from "@deepseek-ai/dsh-scope";
++const NATIVE_PROMPT_RENDER_API = 1;
+ import { isAbsolute } from "node:path";
+ import { Service } from "@deepseek-ai/cordis";
+ import z from "@deepseek-ai/schemastery";
+@@ -170,10 +172,15 @@
+ 		const previous = this.get(agent.session);
+ 		if (previous === directory) return;
+ 		agent.session.append("working-directory/change", { cwd: directory });
++ const from = JSON.stringify(previous), to = JSON.stringify(directory);
++ const defaultText = recovered ? `The working directory ${from} is unavailable. The working directory is now ${to}.` : `The working directory changed from ${from} to ${to}.`;
++ const rendered = this.ctx.bail(scopeTarget(this.ctx, agent), "native-prompt/render", {agent,producer:"workingDirectory",part:recovered?"recovered":"changed",defaultText,variables:{from,to,raw_from:previous,raw_to:directory}});
++ if (rendered !== void 0 && typeof rendered !== "string") throw new TypeError("native-prompt/render must return string or undefined");
++ if (rendered === "") return; // Directory facts are already committed.
+ 		const notice = createUserMessage({
+ 			content: [{
+ 				type: "text",
+-				text: recovered ? `The working directory ${JSON.stringify(previous)} is unavailable. The working directory is now ${JSON.stringify(directory)}.` : `The working directory changed from ${JSON.stringify(previous)} to ${JSON.stringify(directory)}.`
++				text: rendered ?? defaultText
+ 			}],
+ 			source: { kind: "working-directory" }
+ 		});
+@@ -197,4 +204,4 @@
+ 	}
+ };
+ //#endregion
+-export { WorkingDirectoryError, WorkingDirectoryService, WorkingDirectoryService as default };
++export { NATIVE_PROMPT_RENDER_API, WorkingDirectoryError, WorkingDirectoryService, WorkingDirectoryService as default };

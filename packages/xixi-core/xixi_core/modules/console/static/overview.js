@@ -1,0 +1,3 @@
+/* Overview of registered modules and their current state. */
+'use strict';
+perform(async()=>{if(!await sessionReady())return;const list=$('recent-modules');try{const data=await api('/api/platform/modules');list.replaceChildren();for(const item of data.items||[]){const a=node('a',undefined,'recent-item');a.href=(globalThis.XIXI_ADMIN_BASE||'')+'/modules#module-'+encodeURIComponent(item.id);a.append(node('strong',item.name||item.id),node('span',item.id+' · v'+(item.version||'—')),node('time',({running:'运行中',stopped:'未启动',error:'异常'}[item.state]||'未知')));list.append(a);}if(!list.children.length)list.append(node('p','暂无模块。','muted'));}catch(error){list.replaceChildren(node('p',error.message,'muted'));}});

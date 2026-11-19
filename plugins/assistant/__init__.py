@@ -1,0 +1,1 @@
+"""Xiaoxi assistant plugin."""

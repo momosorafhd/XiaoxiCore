@@ -1,0 +1,15 @@
+{% macro navigation(active) -%}
+<div id="nav-shade" hidden></div><aside class="sidebar" id="global-nav" aria-label="系统导航">
+<div class="brand"><div>小希核心<small>管理台</small></div><button id="close-nav" class="icon-button mobile-only" aria-label="关闭导航">×</button></div>
+<div class="nav-group-title">工作空间</div><nav>
+{% for key,url,icon,label in [('overview','/','◈','总览'),('assistant','/assistant','◌','助手运行'),('library','/library','▤','图书馆'),('models','/models','◇','模型设置'),('persona','/persona','◉','角色卡与注入'),('prompts','/prompts','✎','原生提示'),('modules','/modules','◇','模块管理')] %}
+<a class="nav-item {{ 'selected' if active==key else '' }}" href="{{ request.script_root }}{{ url }}" {{ 'aria-current=page' if active==key else '' }}><span class="nav-icon" aria-hidden="true">{{icon}}</span>{{label}}</a>{% endfor %}
+</nav><div class="nav-group-title nav-separator">系统</div><nav>
+{% for key,url,icon,label in [('status','/status','⌁','资源监控'),('logs','/logs','☷','运行日志')] %}
+<a class="nav-item {{ 'selected' if active==key else '' }}" href="{{ request.script_root }}{{ url }}" {{ 'aria-current=page' if active==key else '' }}><span class="nav-icon" aria-hidden="true">{{icon}}</span>{{label}}</a>{% endfor %}
+</nav>{% if service_links %}<div class="nav-group-title nav-separator">外部服务</div><nav class="external-nav" aria-label="外部服务">
+{% for link in service_links %}<a class="nav-item" href="{{link.url}}" target="_blank" rel="noopener noreferrer">{{link.label}}<span class="external-arrow" aria-hidden="true">↗</span></a>{% endfor %}</nav>{% endif %}<div class="nav-bottom"><div class="preview-note"><span class="status-dot"></span>{% if development %}本机候选版<small>独立样例 · 未连接生产环境</small>{% else %}小希核心<small>管理控制台</small>{% endif %}</div><button id="logout" class="nav-item">{% if development %}退出预览{% else %}退出登录{% endif %}</button></div></aside>
+{%- endmacro %}
+{% macro heading(title,group='系统',layout=false) -%}
+<header class="page-header"><div><div class="breadcrumb">{{group}} <span>/</span> {{title}}</div><div class="page-heading"><button id="open-nav" class="icon-button mobile-only" aria-label="打开导航">☰</button><h1>{{title}}</h1></div></div><div class="header-actions">{% if layout %}<button class="secondary layout-toggle" aria-label="切换为紧凑长条" aria-pressed="false">▤ 紧凑长条</button>{% endif %}{% if development %}<span class="preview-label">本机预览</span>{% endif %}</div></header>
+{%- endmacro %}

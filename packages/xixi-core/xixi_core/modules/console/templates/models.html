@@ -1,0 +1,7 @@
+{% extends 'base.html' %}{% set active='models' %}{% set page='models' %}{% block title %}对话策略 · 模型设置{% endblock %}
+{% block final_styles %}<link rel="stylesheet" href="{{request.script_root}}/static/models.css">{% endblock %}
+{% block scripts %}<script defer src="{{request.script_root}}/static/models.js"></script>{% endblock %}
+{% block content %}{{heading('模型设置','对话策略')}}
+<p class="page-intro">按用途选择模型渠道、思考等级和 DSH 模式。新建会话采用已保存的设置，未指定的用途沿用 DSH 默认配置。当前会话保留创建时的设置。</p>
+<form id="model-settings-form"><section class="panel"><div class="section-head"><div><h2>用途配置</h2><p id="model-settings-revision" class="muted">正在读取…</p></div><div class="actions"><button id="model-settings-reload" type="button" class="secondary">重新读取设置</button><button id="model-catalog-refresh" type="button" class="secondary">刷新目录</button></div></div><p id="model-settings-status" class="notice" role="status">正在读取 DSH 模型目录…</p><div id="model-settings-bindings" class="model-purpose-grid"></div><div class="actions"><button id="model-settings-save" type="submit" disabled>保存模型设置</button><span id="model-settings-result" class="muted" role="status"></span></div></section></form>
+{% endblock %}

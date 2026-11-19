@@ -1,0 +1,173 @@
+--- a/node_modules/@deepseek-ai/dsh-agent-instructions/lib/index.js
++++ b/node_modules/@deepseek-ai/dsh-agent-instructions/lib/index.js
+@@ -1,3 +1,18 @@
++import { AsyncLocalStorage } from "node:async_hooks";
++import { scopeTarget } from "@deepseek-ai/dsh-scope";
++const NATIVE_PROMPT_RENDER_API = 1;
++const renderOwner = new AsyncLocalStorage();
++function withInstructionPresentation(ctx, agent, run) { return renderOwner.run({ctx, agent}, run); }
++function renderPart(part, defaultText, variables = {}) {
++    const owner = renderOwner.getStore();
++    if (!owner?.presenting) return defaultText;
++    const rendered = owner?.ctx.bail(scopeTarget(owner.ctx, owner.agent), "native-prompt/render", {
++        agent: owner.agent, producer: "agentInstructions", part, defaultText, variables
++    });
++    if (rendered !== void 0 && typeof rendered !== "string") throw new TypeError("native-prompt/render must return string or undefined");
++    if (rendered !== void 0) owner.customized = true;
++    return rendered ?? defaultText;
++}
+ import { isDeepStrictEqual } from "node:util";
+ import { createUserMessage } from "@deepseek-ai/dsh-llm";
+ import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+@@ -139,7 +154,7 @@
+ 	return body.replaceAll(SYSTEM_REMINDER_CLOSE, "<\\/system-reminder>");
+ }
+ function sectionText(file) {
+-	return `Instructions from: ${file.displayPath}\n\n${file.content}`;
++	return [renderPart('fileHeader', `Instructions from: ${file.displayPath}`, {path:file.displayPath}), file.content].join('\n\n');
+ }
+ /** Directory component that identifies the harness-home user-global instruction scope. */
+ const USER_GLOBAL_DIRECTORY = "user-global";
+@@ -257,11 +272,11 @@
+ const ADDITIONAL_INSTRUCTIONS_GUIDANCE = "Use them as guidance when relevant; more specific instructions take precedence. They do not override system, developer, or direct user instructions.";
+ function additionalSectionText(file) {
+ 	const scope = scopeForDisplayPath(file.displayPath);
+-	const applicability = isUserGlobalDirectory(scope) ? "These user-global instructions apply to all work." : `These instructions apply to work under \`${scope}\`.`;
++	const applicability = isUserGlobalDirectory(scope) ? renderPart('applicabilityGlobal', "These user-global instructions apply to all work.") : renderPart('applicabilityProject', `These instructions apply to work under \`${scope}\`.`, {scope});
+ 	return [
+-		`Additional instructions from: ${file.displayPath}`,
++		renderPart('additionalHeader', `Additional instructions from: ${file.displayPath}`, {path:file.displayPath}),
+ 		"",
+-		`${applicability} ${ADDITIONAL_INSTRUCTIONS_GUIDANCE}`,
++		`${applicability} ${renderPart('additionalGuidance', ADDITIONAL_INSTRUCTIONS_GUIDANCE)}`,
+ 		"",
+ 		file.content
+ 	].join("\n");
+@@ -271,20 +286,20 @@
+ 	section: sectionText
+ };
+ function baselineRenderStyle(files, replacePreviousBaseline) {
+-	if (replacePreviousBaseline !== true) return BASELINE_RENDER_STYLE;
++	if (replacePreviousBaseline !== true) return {...BASELINE_RENDER_STYLE, intro:renderPart('intro', AGENT_INSTRUCTIONS_INTRO)};
+ 	return {
+ 		...BASELINE_RENDER_STYLE,
+-		intro: files.length === 0 ? EMPTY_REPLACEMENT_AGENT_INSTRUCTIONS_INTRO : REPLACEMENT_AGENT_INSTRUCTIONS_INTRO
++		intro: files.length === 0 ? renderPart('emptyReplacementIntro', EMPTY_REPLACEMENT_AGENT_INSTRUCTIONS_INTRO) : renderPart('replacementIntro', REPLACEMENT_AGENT_INSTRUCTIONS_INTRO)
+ 	};
+ }
+ function changedSectionText(item) {
+ 	const { change, file } = item;
+ 	if (change.action === "set") return additionalSectionText(file);
+-	if (change.action === "remove") return `Instructions removed: ${change.path}\n\nThe previously loaded instructions from this file no longer apply.`;
++	if (change.action === "remove") return [renderPart('removedHeader', `Instructions removed: ${change.path}`, {path:change.path}), renderPart('removedGuidance', 'The previously loaded instructions from this file no longer apply.', {path:change.path})].join('\n\n');
+ 	return [
+-		`Updated instructions from: ${change.path}`,
++		renderPart('updatedHeader', `Updated instructions from: ${change.path}`, {path:change.path}),
+ 		"",
+-		"This file changed after it was loaded. Use the following content instead of the previously loaded instructions from this file.",
++		renderPart('updatedGuidance', "This file changed after it was loaded. Use the following content instead of the previously loaded instructions from this file.", {path:change.path}),
+ 		"",
+ 		file.content
+ 	].join("\n");
+@@ -299,7 +314,8 @@
+ */
+ function renderInstructionChanges(items, maxBytes) {
+ 	const byAbsolutePath = new Map(items.map((item) => [item.file.absolutePath, item]));
+-	const rendered = renderInstructionChains(items.map((item) => item.file), maxBytes, {
++	// Reuse the exact delta style for native budgeting and final presentation.
++	const style = {
+ 		intro: "",
+ 		section(file) {
+ 			const item = byAbsolutePath.get(file.absolutePath);
+@@ -309,19 +325,20 @@
+ 				file
+ 			});
+ 		}
+-	});
++	};
++	const rendered = renderInstructionChains(items.map((item) => item.file), maxBytes, style);
+ 	const represented = new Set(rendered.represented.map((file) => file.absolutePath));
+ 	return {
+-		text: rendered.text,
++		text: presentInstructionContext(rendered, maxBytes, style),
+ 		changes: items.filter((item) => represented.has(item.file.absolutePath)).map((item) => item.change)
+ 	};
+ }
+ function markerText(maxBytes, omitted, truncated) {
+ 	if (omitted.length === 0 && truncated.length === 0) return "";
+ 	const parts = [];
+-	if (omitted.length > 0) parts.push(`omitted ${omitted.map((file) => file.displayPath).join(", ")}`);
+-	if (truncated.length > 0) parts.push(`truncated ${truncated.map((item) => `${item.displayPath} from ${item.originalBytes} to ${item.includedBytes} bytes`).join(", ")}`);
+-	return `Workspace instruction budget ${maxBytes} bytes: ${parts.join("; ")}`;
++	if (omitted.length > 0) parts.push(renderPart('budgetOmitted', `omitted ${omitted.map(file => file.displayPath).join(', ')}`, {paths:omitted.map(file=>file.displayPath).join(', ')}));
++	if (truncated.length > 0) parts.push(renderPart('budgetTruncated', `truncated ${truncated.map(item => renderPart('budgetTruncatedItem', `${item.displayPath} from ${item.originalBytes} to ${item.includedBytes} bytes`, {path:item.displayPath,original_bytes:item.originalBytes,included_bytes:item.includedBytes})).join(', ')}`, {items:truncated.map(item=>renderPart('budgetTruncatedItem', `${item.displayPath} from ${item.originalBytes} to ${item.includedBytes} bytes`, {path:item.displayPath,original_bytes:item.originalBytes,included_bytes:item.includedBytes})).join(', ')}));
++	return renderPart('budgetSummary', `Workspace instruction budget ${maxBytes} bytes: ${parts.join('; ')}`, {max_bytes:maxBytes,details:parts.join('; ')});
+ }
+ function buildInstructionText(files, maxBytes, omitted, truncated, style) {
+ 	return [
+@@ -334,6 +351,22 @@
+ 		SYSTEM_REMINDER_CLOSE
+ 	].join("\n");
+ }
++
++function presentInstructionContext(rendered, maxBytes, style) {
++    const current = renderOwner.getStore();
++    if (current === void 0) return rendered.text;
++    const owner = {...current, presenting:true, customized:false};
++    return renderOwner.run(owner, () => {
++        let intro = rendered.intro ?? "";
++        if (intro === AGENT_INSTRUCTIONS_INTRO) intro = renderPart("intro", intro);
++        else if (intro === REPLACEMENT_AGENT_INSTRUCTIONS_INTRO) intro = renderPart("replacementIntro", intro);
++        else if (intro === EMPTY_REPLACEMENT_AGENT_INSTRUCTIONS_INTRO) intro = renderPart("emptyReplacementIntro", intro);
++        else if (intro === COMPACT_AGENT_INSTRUCTIONS_INTRO) intro = renderPart("compactIntro", intro);
++        const text = buildInstructionText(rendered.sections, maxBytes, rendered.omitted, rendered.truncated, {...style, intro});
++        return owner.customized ? text : rendered.text;
++    });
++}
++
+ function withTruncatedContent(file, includedBytes) {
+ 	return {
+ 		...file,
+@@ -414,7 +447,7 @@
+ 	const originalBytes = byteLength(mostSpecific.content);
+ 	for (const candidateStyle of [style, {
+ 		...style,
+-		intro: COMPACT_AGENT_INSTRUCTIONS_INTRO
++		intro: renderPart('compactIntro', COMPACT_AGENT_INSTRUCTIONS_INTRO)
+ 	}]) {
+ 		const truncatedFile = truncateToFit(mostSpecific, [], maxBytes, omitted, candidateStyle);
+ 		const includedBytes = byteLength(truncatedFile.content);
+@@ -516,7 +549,9 @@
+ */
+ function renderAgentInstructionSet(files, options) {
+ 	const style = baselineRenderStyle(files, options.replacePreviousBaseline);
+-	const { text, omitted, truncated, represented } = renderInstructionChains(files, options.maxBytes, style);
++	const result = renderInstructionChains(files, options.maxBytes, style);
++ const {omitted,truncated,represented} = result;
++ const text = presentInstructionContext(result, options.maxBytes, style);
+ 	return {
+ 		rendered: {
+ 			text,
+@@ -1306,7 +1341,7 @@
+ 	}, "agent-instructions.projectionLifecycle");
+ 	const projectionTails = /* @__PURE__ */ new WeakMap();
+ 	const stepTouches = /* @__PURE__ */ new WeakMap();
+-	const compose = async (agent, signal, claimed, pending, touchedPaths = []) => {
++	const composeNative = async (agent, signal, claimed, pending, touchedPaths = []) => {
+ 		signal.throwIfAborted();
+ 		if (resolved.maxBytes <= 0 || !Number.isFinite(resolved.maxBytes)) return;
+ 		const fileSystem = ctx.get("fs");
+@@ -1418,6 +1453,7 @@
+ 			}
+ 		});
+ 	};
++	const compose = (...args) => withInstructionPresentation(ctx, args[0], () => composeNative(...args));
+ 	const syncInbox = (agent, claimed, desired) => {
+ 		const pending = agent.inbox.nextStep.filter(isAgentInstructionsMessage);
+ 		const alreadySupplied = desired !== void 0 && (claimed.some((message) => sameContextPayload(message, desired)) || agent.session.surface.nodes.some((seq) => {
+@@ -1518,4 +1554,4 @@
+ 	});
+ }
+ //#endregion
+-export { Config, apply, discoverBaselineInstructionFiles, inject, loadBaselineInstructions, name, renderAgentInstructions };
++export { NATIVE_PROMPT_RENDER_API, Config, apply, discoverBaselineInstructionFiles, inject, loadBaselineInstructions, name, renderAgentInstructions };

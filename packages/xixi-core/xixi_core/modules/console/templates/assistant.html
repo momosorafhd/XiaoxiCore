@@ -1,0 +1,13 @@
+{% extends 'base.html' %}{% set active='assistant' %}{% block title %}助手运行{% endblock %}
+{% block scripts %}<script defer src="{{request.script_root}}/static/assistant.js"></script>{% endblock %}
+{% block content %}{{heading('助手运行','工作空间')}}
+<section class="panel"><div class="section-head"><div><h2 id="assistant-state">正在读取…</h2><p class="muted" id="assistant-session"></p></div><button class="secondary" id="refresh-assistant">刷新</button></div>
+<p id="assistant-work"></p><p class="notice" id="assistant-error" hidden></p>
+<div class="actions">
+{% for action,title in [('start','启动助手'),('stop','停止接收'),('handoff','闲时换聊'),('dream','做梦整理'),('startup-unread','重新补收')] %}
+<button type="button" class="secondary" data-action="{{action}}" disabled>{{title}}</button>
+{% endfor %}<a class="text-button" href="{{request.script_root}}/modules#module-assistant">模块管理 →</a></div></section>
+<section class="panel"><h2>启动补收</h2><p class="muted" id="recovery-status"></p><form id="startup-form">
+<label>补收时附给当前会话的提示<textarea id="startup-text" rows="4" required></textarea></label>
+<div class="actions"><button type="submit" id="save-prompt" disabled>保存提示</button><span id="startup-saved" role="status"></span></div></form></section>
+{% endblock %}

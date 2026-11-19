@@ -1,0 +1,6 @@
+{% extends 'base.html' %}{% set active='logs' %}{% block title %}运行日志{% endblock %}
+{% block scripts %}<script defer src="{{request.script_root}}/static/logs.js"></script>{% endblock %}
+{% block content %}{{heading('运行日志')}}
+<p class="page-intro">查看最近 100 条平台记录，核对模块操作结果和异常信息。</p>
+<section class="panel"><div class="section-head"><div><h2>近期记录</h2><p id="logs-updated" class="muted">正在读取…</p></div><button id="refresh-logs" class="secondary">刷新</button></div><div class="table-wrap"><table><thead><tr><th>时间</th><th>级别</th><th>模块</th><th>记录</th></tr></thead><tbody id="platform-logs"></tbody></table></div></section>
+{% endblock %}

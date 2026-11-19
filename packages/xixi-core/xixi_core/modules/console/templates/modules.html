@@ -1,0 +1,26 @@
+{% extends 'base.html' %}{% set active='modules' %}{% block title %}模块管理{% endblock %}
+{% block final_styles %}<link rel="stylesheet" href="{{request.script_root}}/static/modules.css">{% endblock %}
+{% block scripts %}<script defer src="{{request.script_root}}/static/modules.js"></script>{% endblock %}
+{% block content %}{{heading('模块管理','工作空间')}}
+<div class="module-toolbar"><p id="platform-state" class="muted">正在读取运行状态…</p><button id="refresh-modules" class="secondary small">刷新</button></div>
+<p id="console-state" class="notice" hidden></p>
+<div id="module-list" class="module-grid"><p class="muted">正在读取模块…</p></div>
+{% endblock %}
+{% block dialogs %}
+<dialog id="config-dialog" aria-labelledby="config-title"><form id="config-form">
+<div class="section-head"><h2 id="config-title">模块配置</h2><button type="button" class="secondary" id="close-config">关闭</button></div>
+<p id="config-caption" class="muted"></p>
+<fieldset id="bridge-settings" hidden disabled><legend>主人私聊</legend>
+<label>主人 QQ（私聊白名单，仅一位）<input name="ownerId" inputmode="numeric" pattern="[1-9][0-9]*" autocomplete="off"></label>
+<label>机器人 QQ<input name="botId" inputmode="numeric" pattern="[1-9][0-9]*" autocomplete="off"></label>
+<label>消息桥模式<select name="mode"><option value="offline">离线</option><option value="onebot_reverse">接收 OneBot 反向连接</option></select></label>
+<label>监听地址<input name="listenHost" placeholder="127.0.0.1"></label>
+<label>监听端口<input name="listenPort" type="number" min="1024" max="65535"></label>
+<label>允许连接的 OneBot 客户端 IP<input name="allowedPeerIp" placeholder="127.0.0.1"></label>
+<label>反向连接令牌文件的绝对路径<input name="reverseTokenFile" autocomplete="off"></label>
+<label>SnowLuma 消息索引路径（可选）<input name="historyIndex"></label>
+</fieldset>
+<label id="json-settings">配置内容（JSON）<textarea id="config-value" rows="12" cols="72" spellcheck="false"></textarea></label>
+<p id="config-message" class="notice" role="status" hidden></p>
+<div class="actions"><button id="reload-after-save" type="button" class="secondary">重载插件</button><button type="submit">保存配置</button></div></form></dialog>
+{% endblock %}

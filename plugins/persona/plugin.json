@@ -1,0 +1,8 @@
+{
+  "id": "persona",
+  "name": "角色卡与注入",
+  "version": "0.1.0",
+  "api_version": 1,
+  "entry": "plugin.py:Plugin",
+  "requires": []
+}

@@ -1,0 +1,15 @@
+{
+  "http": {"host": "127.0.0.1", "port": 18910},
+  "plugins_dir": "plugins",
+  "modules": {
+    "system": {"enabled": true, "config": {"refreshSeconds": 1}},
+    "console": {"enabled": true, "config": {"serviceLinks": []}},
+    "model_settings": {"enabled": true, "config": {}},
+    "persona": {"enabled": true, "config": {}},
+    "library": {"enabled": true, "config": {}},
+    "message_bridge": {"enabled": true, "config": {"mode": "offline"}},
+    "dsh_bridge": {"enabled": false, "config": {}},
+    "assistant": {"enabled": false, "config": {}},
+    "example": {"enabled": false, "config": {"text": "示例插件已运行", "intervalSeconds": 0.1}}
+  }
+}

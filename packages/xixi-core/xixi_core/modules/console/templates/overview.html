@@ -1,0 +1,11 @@
+{% extends 'base.html' %}{% set active='overview' %}{% block title %}小希管理台{% endblock %}
+{% block scripts %}<script defer src="{{request.script_root}}/static/overview.js"></script>{% endblock %}
+{% block content %}{{heading('总览','工作空间')}}
+<p class="page-intro">查看助手会话、图书馆和系统运行状态。</p>
+<div class="overview-columns"><section class="panel"><div class="section-head"><div><h2>常用功能</h2><p class="muted">管理当前模块、查看系统资源与运行记录。</p></div></div><div class="function-grid">
+{% for url,icon,title,desc in [('/assistant','◌','助手运行','查看当前会话、积压消息和整理进度。'),('/library','▤','图书馆','查看和编辑记忆、资料与日记。'),('/models','◇','模型设置','为不同用途选择渠道、模型和思考等级。'),('/persona','◉','角色卡与注入','编辑角色、开场和每轮对话的提示。'),('/prompts','✎','原生提示','编辑新 DSH 会话使用的原生提示。'),('/modules','◇','模块管理','启停模块、保存配置和重载本地插件。'),('/status','⌁','资源监控','处理器、内存、显卡、风扇和部件温度。'),('/status/history','▤','历史统计','查看每分钟保存的资源记录与统计曲线。'),('/logs','☷','运行日志','查看模块操作、运行情况和异常记录。')] %}
+<a class="function-card" href="{{request.script_root}}{{url}}"><span class="function-icon">{{icon}}</span><div><h3>{{title}}</h3><p>{{desc}}</p></div><span class="card-arrow">↗</span></a>{% endfor %}</div></section>
+<section class="panel"><div class="section-head"><h2>模块状态</h2><a class="text-button" href="{{request.script_root}}/modules">管理 →</a></div><div id="recent-modules" class="recent-list"><p class="muted">正在读取…</p></div></section></div>
+{% if service_links %}<section class="panel"><div class="section-head"><h2>外部服务</h2></div><div class="services-grid">
+{% for link in service_links %}<a class="service-card" href="{{link.url}}" target="_blank" rel="noopener noreferrer"><strong>{{link.label}} ↗</strong>{% if link.description %}<span>{{link.description}}</span>{% endif %}</a>{% endfor %}</div></section>{% endif %}
+{% endblock %}

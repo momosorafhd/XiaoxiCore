@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>小希管理台</title><link rel="stylesheet" href="{{ request.script_root }}/static/style.css"><script defer src="{{ request.script_root }}/static/login.js"></script></head>
+<body class="login-page">
+<main class="login-card">
+  <div class="eyebrow">小希 / OWNER CONSOLE</div>
+  <h1>欢迎回来</h1><p class="muted">在这里管理模块、配置和系统状态。</p>
+  {% if development %}<p class="notice">本地测试模式 · 仅限假数据</p>{% endif %}
+  <form id="login-form" data-destination="{{ login_destination|default('/') }}"><label for="password">管理密码</label><input type="password" id="password" name="password" required maxlength="256" autocomplete="current-password" autofocus><button type="submit" id="login-button">登录管理台</button></form>
+  <p id="message" class="message" role="status" aria-live="polite"></p>
+  <p class="footnote">仅向主人开放。密码与凭据不会交给模型。</p>
+</main>
+</body></html>

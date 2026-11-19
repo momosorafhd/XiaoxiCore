@@ -1,0 +1,22 @@
+{% extends 'base.html' %}{% set active='prompts' %}{% set page='core-persona' %}{% block title %}DSH 原生提示{% endblock %}
+{% block final_styles %}<link rel="stylesheet" href="{{request.script_root}}/static/core-admin.css">{% endblock %}
+{% block scripts %}<script defer src="{{request.script_root}}/static/prompt-policy.js"></script>{% endblock %}
+{% block content %}{{heading('DSH 原生提示','工作空间')}}
+<section class="panel" id="native-prompt-policy">
+  <div class="section-head">
+    <p id="prompt-policy-state" class="muted" role="status">正在读取提示…</p>
+    <button id="prompt-policy-reload" class="secondary" type="button">重新读取</button>
+  </div>
+  <p class="notice">直接在要修改的提示中输入，保存后用于新会话。已有会话继续使用创建时的配置。</p>
+  <form id="prompt-policy-form" class="core-form" hidden>
+    <fieldset id="prompt-policy-fields" class="prompt-editor-fields" aria-label="DSH 提示正文">
+      <nav id="prompt-policy-tabs" class="core-prompt-tabs" aria-label="提示分组"></nav>
+      <div id="prompt-policy-editor"></div>
+      <div class="actions prompt-editor-save">
+        <button type="submit" disabled>保存修改</button>
+        <span id="prompt-policy-save-state" class="muted" role="status"></span>
+      </div>
+    </fieldset>
+  </form>
+</section>
+{% endblock %}

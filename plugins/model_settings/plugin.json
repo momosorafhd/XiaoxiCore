@@ -1,0 +1,8 @@
+{
+  "id": "model_settings",
+  "name": "模型设置",
+  "version": "0.1.0",
+  "api_version": 1,
+  "entry": "plugin.py:Plugin",
+  "requires": []
+}

@@ -1,0 +1,60 @@
+--- a/node_modules/@deepseek-ai/dsh-session-title-first-prompt-llm/lib/index.js
++++ b/node_modules/@deepseek-ai/dsh-session-title-first-prompt-llm/lib/index.js
+@@ -4,6 +4,7 @@
+ import { SessionTitleLlmConfigFields, executeSessionTitleLlm, resolveSessionTitleLlmConfig } from "@deepseek-ai/dsh-session-title-llm";
+ //#region lib/types/index.js
+ /** First-human-message model provider for `ctx.sessionTitle`. */
++const NATIVE_AUX_PROMPT_RENDER_API = 1;
+ const name = "session-title-first-prompt-llm";
+ const inject = [
+ 	"sessionTitle",
+@@ -51,9 +52,28 @@
+ 	].join("\n");
+ }
+ /** Frame the selected messages as JSON so user text cannot break structural delimiters. */
+-function frameMessages(messages) {
+-	return `Generate the session title from this JSON array of human messages:\n${JSON.stringify(messages)}`;
++function frameMessages(messages, inputIntro) {
++	return `${inputIntro}\n${JSON.stringify(messages)}`;
+ }
++function renderSessionTitlePrompt(ctx, sessionId, config) {
++  const original = {
++    system: systemPrompt(config),
++    inputIntro: 'Generate the session title from this JSON array of human messages:',
++  };
++  const replacement = ctx.bail('native-aux-prompt/render', Object.freeze({
++    sessionId, kind: 'sessionTitle', ...original,
++    variables: Object.freeze({target_words: config.targetWords, target_cjk_characters: config.targetCjkCharacters}),
++  }));
++  if (replacement === undefined) return original;
++  if (replacement === null || typeof replacement !== 'object' || Array.isArray(replacement)
++      || ![Object.prototype, null].includes(Object.getPrototypeOf(replacement))
++      || Reflect.ownKeys(replacement).some(key => key !== 'system' && key !== 'inputIntro')
++      || Object.values(replacement).some(value => typeof value !== 'string' || value.length > 1000000)) {
++    throw new Error('NATIVE_AUX_PROMPT_RENDER_INVALID_RESPONSE');
++  }
++  return {system: replacement.system ?? original.system, inputIntro: replacement.inputIntro ?? original.inputIntro};
++}
++
+ /** Asterisk emphasis wrapping a whole line, such as `**Title**`. */
+ const EMPHASIS_WRAPPER = /^(?<marker>\*{1,3})(?<inner>\S(?:.*\S)?)\k<marker>$/u;
+ /**
+@@ -99,9 +119,10 @@
+ 		async generate(request) {
+ 			const first = request.messages[0];
+ 			if (first === void 0) throw new Error("first-prompt title provider requires one human message");
++			const rendered = renderSessionTitlePrompt(ctx, request.session.id, resolved);
+ 			const response = await executeSessionTitleLlm(ctx, resolved, request, titleProvider, {
+-				system: systemPrompt(resolved),
+-				input: frameMessages([first]),
++				system: rendered.system,
++				input: frameMessages([first], rendered.inputIntro),
+ 				messageSeqs: [first.seq],
+ 				selectReasoningEffort
+ 			});
+@@ -114,4 +135,4 @@
+ 	});
+ }
+ //#endregion
+-export { Config, apply, inject, name };
++export { Config, NATIVE_AUX_PROMPT_RENDER_API, apply, inject, name };

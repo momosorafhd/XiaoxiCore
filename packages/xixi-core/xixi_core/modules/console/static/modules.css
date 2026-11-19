@@ -1,0 +1,38 @@
+.module-toolbar, .module-head, .module-actions {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+}
+.module-toolbar { margin: .2rem 0 1rem; flex-wrap: wrap; }
+.module-toolbar p, .module-head h2 { margin: 0; }
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 265px), 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.dashboard-workspace .module-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 14px;
+  min-width: 0;
+}
+.module-head, .module-card .notice, .module-card details[open] { grid-column: 1 / -1; }
+.module-head { justify-content: space-between; }
+.module-head h2 { font-size: 1.05rem; overflow-wrap: anywhere; }
+.module-state { white-space: nowrap; color: var(--muted); font-size: .87rem; }
+.state-running { color: var(--success); }
+.state-error { color: var(--danger); }
+.module-actions { gap: 6px; flex-wrap: wrap; }
+.module-card details { align-self: center; margin: 0; padding: 0; border: 0; }
+.module-card summary { width: fit-content; padding: 3px 0; cursor: pointer; color: var(--muted); font-size: .88rem; }
+.module-card details p { margin: .3rem 0; overflow-wrap: anywhere; }
+.module-card pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .85rem; }
+#config-dialog { max-width: min(700px, calc(100vw - 24px)); }
+#config-value { width: 100%; max-width: 100%; }
+#bridge-settings:not([hidden]) { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 215px), 1fr)); gap: .7rem; }
+#bridge-settings label { display: grid; gap: .25rem; }
+#bridge-settings input, #bridge-settings select { min-width: 0; width: 100%; }
+#config-form [hidden] { display: none; }

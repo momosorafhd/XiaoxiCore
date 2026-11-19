@@ -1,0 +1,53 @@
+{
+  "version": "0.2.2-rc.2",
+  "files": [
+    {
+      "target": "node_modules/@deepseek-ai/dsh-compaction-basic/lib/index.js",
+      "original_sha256": "e1a3019949d01b22baa91d6eb672d9559d76b97fb5bb45e0428715a316bf11d4",
+      "patched_sha256": "9614d176b57fd4d50f69a87f984f2bc18f21ff49a1beeed3dd10e88d7246ae36",
+      "patch": "dsh-compaction-basic.patch"
+    },
+    {
+      "target": "node_modules/@deepseek-ai/dsh-agent/lib/index.js",
+      "original_sha256": "bc2a39dea1174c2b2dc0641f08094f840d3a1e414bef42ac93c945f7235d7ead",
+      "patched_sha256": "4b861756770fbe8c0f4348325e2747e46290c3373901c7d5c05c5e7d2f787567",
+      "patch": "dsh-agent.patch"
+    },
+    {
+      "target": "node_modules/@deepseek-ai/dsh-agent-instructions/lib/index.js",
+      "original_sha256": "afbd526d1e3126a368774f24105140adc3ef532ca4aa93cfa0fb1318d5b9b75d",
+      "patched_sha256": "eec4d7bc61b78b7af7effc2d84b174ce24fbd230911e35defd8a95406f9d85b6",
+      "patch": "dsh-agent-instructions.patch"
+    },
+    {
+      "target": "node_modules/@deepseek-ai/dsh-agent-loop/lib/index.js",
+      "original_sha256": "f09f60814d4e96a880f41b9fc3832f33c56a28f954f48810d8439ce83ad6ffa8",
+      "patched_sha256": "9df258ce1337b92ef18df95e938a9cf27f9f92e234bbe0f4667de2473f408ae5",
+      "patch": "dsh-agent-loop.patch"
+    },
+    {
+      "target": "node_modules/@deepseek-ai/dsh-plan-mode/lib/index.js",
+      "original_sha256": "5f9ee37cd7bc3922c05148504700ac25eb2179099d494c5721380cd71363ced0",
+      "patched_sha256": "e5f053c50a4cbd5e8e9f2f3c24a5f669042a78873447b186887306b366ff8faa",
+      "patch": "dsh-plan-mode.patch"
+    },
+    {
+      "target": "node_modules/@deepseek-ai/dsh-time-context/lib/index.js",
+      "original_sha256": "8ef144d391269a00b43e561426b452a6f1b23a8397515e2fd3b88ddd20cac716",
+      "patched_sha256": "8c1020501744b1d7e07b431a6199fcd9109aae127d00b471ebbfa8981c075e72",
+      "patch": "dsh-time-context.patch"
+    },
+    {
+      "target": "node_modules/@deepseek-ai/dsh-working-directory/lib/index.js",
+      "original_sha256": "03cb7ebdaa8b97cfc3170320d04446b99ce939349696289b49549d1e96cea59b",
+      "patched_sha256": "9fd4bb74cfe8e518a7e465e6e2b397af35af758025c176df8532dbf04dffe3dd",
+      "patch": "dsh-working-directory.patch"
+    },
+    {
+      "target": "node_modules/@deepseek-ai/dsh-session-title-first-prompt-llm/lib/index.js",
+      "original_sha256": "ba92e9e6bf2cae9aad6b24eeaeca7150a2d0a48a2036147f6c79d26074a8947a",
+      "patched_sha256": "67bbf73a53926728e57900ff54938ccb63c778ec2010d57c2396e13dca8bc58d",
+      "patch": "dsh-session-title-first-prompt-llm.patch"
+    }
+  ]
+}
